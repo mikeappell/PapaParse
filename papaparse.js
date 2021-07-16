@@ -1182,14 +1182,23 @@ License: MIT
 
 			function addHeader(header, i)
 			{
-				if (isFunction(_config.transformHeader))
+				if (myIsFunction(_config.transformHeader, _config))
+				{
 					header = _config.transformHeader(header, i);
+				}
+				else if (_config.worker && isObject(_config.transformHeaderForWorker))
+				{
+					var additionalData = JSON.parse(_config.transformHeaderForWorker.additionalData);
+					eval('var evaluatedTransformHeader = ' + _config.transformHeader.callback);
+					header = evaluatedTransformHeader(header, i, additionalData);
+				}
 
 				_fields.push(header);
 			}
 
 			if (Array.isArray(_results.data[0]))
 			{
+				console.log(_config)
 				for (var i = 0; needsHeaderRow() && i < _results.data.length; i++)
 					_results.data[i].forEach(addHeader);
 
@@ -1869,6 +1878,18 @@ License: MIT
 	function isFunction(func)
 	{
 		return typeof func === 'function';
+	}
+
+	function myIsFunction(func, _config)
+	{
+		console.log(_config)
+		if (_config) console.log(_config.transformHeaderForWorker)
+		return typeof func === 'function';
+	}
+
+	function isObject(obj)
+	{
+		return typeof obj === 'object';
 	}
 
 	return Papa;
